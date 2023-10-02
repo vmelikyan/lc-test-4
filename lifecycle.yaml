@@ -16,6 +16,9 @@ services:
       branchName: 'main'
       chart:
         name: 'goodrx-app'
+        valueFiles:
+          - './sysops/helm/common.yaml'
+          - './sysops/helm/lifecycle/service/app.yaml'
       docker:
         defaultTag: 'main'
         app:
