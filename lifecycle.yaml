@@ -27,8 +27,7 @@ services:
             CLIENT_HOST: '{{grpc-echo_internalHostname}}:8080'
             TEST_TEST: 'test'
           ports:
-            - 8080  
-
+            - 8080
 
   # - name: 'lc-test'
   #   defaultUUID: 'good-dev-0'
