@@ -1,9 +1,9 @@
 ---
-version: '1.0.0'
+version: '0.0.3-alpha-1'
 
 environment:
   defaultServices:
-    - name: 'lc-test-4'
+    # - name: 'lc-test-4'
     - name: 'lc-test'
       branch: 'test-1'
       repository: 'vmelikyan/lc-test'
@@ -12,25 +12,25 @@ environment:
     # - name: 'postgres-by-helm'
     # - name: 'lc-helm-test'
     
-services:
-  - name: "lc-test-4"
-    helm:
-      repository: 'vmelikyan/lc-test'
-      branchName: 'main'
-      chart:
-        name: 'goodrx-app'
-        valueFiles:
-          - './sysops/helm/common.yaml'
-          - './sysops/helm/lifecycle/service/app.yaml'
-      docker:
-        defaultTag: 'main'
-        app:
-          dockerfilePath: 'sysops/dockerfiles/app.dockerfile'
-          env:
-            CLIENT_HOST: '{{grpc-echo_internalHostname}}:8080'
-            TEST_TEST: 'test'
-          ports:
-            - 8080  
+# services:
+#   - name: "lc-test-4"
+#     helm:
+#       repository: 'vmelikyan/lc-test'
+#       branchName: 'main'
+#       chart:
+#         name: 'goodrx-app'
+#         valueFiles:
+#           - './sysops/helm/common.yaml'
+#           - './sysops/helm/lifecycle/service/app.yaml'
+#       docker:
+#         defaultTag: 'main'
+#         app:
+#           dockerfilePath: 'sysops/dockerfiles/app.dockerfile'
+#           env:
+#             CLIENT_HOST: '{{grpc-echo_internalHostname}}:8080'
+#             TEST_TEST: 'test'
+#           ports:
+#             - 8080  
 
 
   # - name: 'lc-test'
