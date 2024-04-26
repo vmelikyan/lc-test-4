@@ -12,7 +12,7 @@ environment:
 services:
   - name: "lc-test-4"
     helm:
-      repository: 'vmelikyan/lc-test'
+      repository: 'vmelikyan/lc-test-4'
       branchName: 'main'
       chart:
         name: 'goodrx-app'
