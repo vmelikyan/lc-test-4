@@ -11,6 +11,8 @@ environment:
     
 services:
   - name: "lc-test-4"
+    kedaScaleToZero:
+      type: http
     helm:
       repository: 'vmelikyan/lc-test-4'
       branchName: 'main'
