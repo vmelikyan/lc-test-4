@@ -12,7 +12,7 @@ environment:
 services:
   - name: "lc-test-4"
     helm:
-      cfStepType: "vahans-image:latest"
+      cfStepType: "helm:1.1.12"
       repository: 'vmelikyan/lc-test-4'
       branchName: 'main'
       chart:
