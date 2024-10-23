@@ -10,6 +10,8 @@ environment:
     # - name: 'grpc-echo'
     # - name: 'postgres-by-helm'
     # - name: 'lc-helm-test'
+  optionalServices:
+    - name: 'grpc-echo'
     
 services:
   - name: "lc-test-4"
@@ -97,24 +99,24 @@ services:
   #           host: "lifecycle-grpc.dev.goodrx.com"
   #           defaultHost: "grpc-echo-good-dev-0.lifecycle-grpc.dev.goodrx.com"
   
-  # - name: "grpc-echo"
-  #   helm:
-  #     repository: "vmelikyan/lc-test"
-  #     branchName: "main"
-  #     grpc: true
-  #     chart:
-  #       name: 'goodrx-app'
-  #       valueFiles:
-  #         - 'sysops/helm/common.yaml'
-  #         - 'sysops/helm/lfc/service/grpc-service.yaml'
-  #     docker:
-  #       defaultTag: "main"
-  #       app:
-  #         dockerfilePath: "grpc-echo/Dockerfile"
-  #         ports:
-  #           - 8080
-  #         env:
-  #           COMPONENT: "app"
+  - name: "grpc-echo"
+    helm:
+      repository: "vmelikyan/lc-test"
+      branchName: "main"
+      grpc: true
+      chart:
+        name: 'goodrx-app'
+        valueFiles:
+          - 'sysops/helm/common.yaml'
+          - 'sysops/helm/lfc/service/grpc-service.yaml'
+      docker:
+        defaultTag: "main"
+        app:
+          dockerfilePath: "grpc-echo/Dockerfile"
+          ports:
+            - 8080
+          env:
+            COMPONENT: "app"
             
 
             
