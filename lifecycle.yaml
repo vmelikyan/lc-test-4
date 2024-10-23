@@ -27,6 +27,8 @@ services:
           dockerfilePath: 'sysops/dockerfiles/app.dockerfile'
           env:
             CLIENT_HOST: '{{grpc-echo_internalHostname}}:8080'
+            NO_SERVICE_VAR: 'https://{{yolo_internalHostname}}:8080'
+            SELF_SERVICE_VAR: 'https://{{lc-test-4_internalHostname}}:8080'
             TEST_TEST: 'test'
           ports:
             - 8080  
