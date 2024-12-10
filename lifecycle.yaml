@@ -1,16 +1,31 @@
 ---
-version: '1.0.0'
+version: '2.0.0'
 
 environment:
   defaultServices:
-    - name: 'lc-test-4'
+    - name: 'cf-test'
     # - name: 'redis-helm'
     # - name: 'grpc-echo'
     # - name: 'postgres-by-helm'
     # - name: 'lc-helm-test'
-    
+  optionalServices:
+    - name: 'lc-test-4'
+
 services:
+  - name: "cf-test"
+    codefresh:
+      repository: 'vmelikyan/lc-test-4'
+      branchName: 'main'
+      env:
+        BUILD_UUID: "{{buildUUID}}"
+      deploy:
+        pipelineId: '67579c289f8c52476ec8ff41'
+      destroy:
+        pipelineId: '67579c289f8c52476ec8ff41'
+
   - name: "lc-test-4"
+    deploymentDependsOn:
+      - cf-test
     helm:
       repository: 'vmelikyan/lc-test-4'
       branchName: 'main'
