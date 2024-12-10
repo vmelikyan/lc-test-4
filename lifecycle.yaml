@@ -20,10 +20,8 @@ services:
         BUILD_UUID: "{{buildUUID}}"
       deploy:
         pipelineId: '67579c289f8c52476ec8ff41'
-        trigger: 'test-trigger'
       destroy:
         pipelineId: '67579c289f8c52476ec8ff41'
-        trigger: 'test-trigger'
     
 # services:
 #   - name: "lc-test-4"
