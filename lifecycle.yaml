@@ -3,16 +3,16 @@ version: '1.0.0'
 
 environment:
   defaultServices:
-    # - name: 'lc-test-4'
     - name: 'cf-test'
     # - name: 'redis-helm'
     # - name: 'grpc-echo'
     # - name: 'postgres-by-helm'
     # - name: 'lc-helm-test'
-
+  optionalServices:
+    - name: 'lc-test-4'
 
 services:
-  - name: "lc-test-4"
+  - name: "cf-test"
     codefresh:
       repository: 'vmelikyan/lc-test-4'
       branchName: 'main'
@@ -23,26 +23,28 @@ services:
       destroy:
         pipelineId: '67579c289f8c52476ec8ff41'
     
-# services:
-#   - name: "lc-test-4"
-#     helm:
-#       repository: 'vmelikyan/lc-test-4'
-#       branchName: 'main'
-#       chart:
-#         name: 'goodrx-app'
-#         valueFiles:
-#           - './sysops/helm/common.yaml'
-#           - './sysops/helm/lifecycle/service/app.yaml'
-#       docker:
-#         defaultTag: 'main'
-#         app:
-#           dockerfilePath: 'sysops/dockerfiles/app.dockerfile'
-#           env:
-#             CLIENT_HOST: '{{grpc-echo_internalHostname}}:8080'
-#             LC_TEST_HOST: '{{lc-test_internalHostname}}:8080'
-#             TEST_TEST: 'test'
-#           ports:
-#             - 8080  
+services:
+  - name: "lc-test-4"
+    deploymentDependsOn:
+      - name: cf-test
+    helm:
+      repository: 'vmelikyan/lc-test-4'
+      branchName: 'main'
+      chart:
+        name: 'goodrx-app'
+        valueFiles:
+          - './sysops/helm/common.yaml'
+          - './sysops/helm/lifecycle/service/app.yaml'
+      docker:
+        defaultTag: 'main'
+        app:
+          dockerfilePath: 'sysops/dockerfiles/app.dockerfile'
+          env:
+            CLIENT_HOST: '{{grpc-echo_internalHostname}}:8080'
+            LC_TEST_HOST: '{{lc-test_internalHostname}}:8080'
+            TEST_TEST: 'test'
+          ports:
+            - 8080  
 
 
   # - name: 'lc-test'
