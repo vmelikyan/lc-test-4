@@ -25,7 +25,7 @@ services:
 
   - name: "lc-test-4"
     deploymentDependsOn:
-      - name: cf-test
+      - cf-test
     helm:
       repository: 'vmelikyan/lc-test-4'
       branchName: 'main'
