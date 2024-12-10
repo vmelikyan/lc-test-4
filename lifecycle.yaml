@@ -22,8 +22,7 @@ services:
         pipelineId: '67579c289f8c52476ec8ff41'
       destroy:
         pipelineId: '67579c289f8c52476ec8ff41'
-    
-services:
+
   - name: "lc-test-4"
     deploymentDependsOn:
       - name: cf-test
