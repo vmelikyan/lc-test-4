@@ -1,7 +1,6 @@
 name: Meta Build Workflow
 
 on:
-  # This workflow can be triggered manually via the GitHub Actions UI or CLI
   workflow_dispatch:
     inputs:
       branch:
@@ -9,7 +8,7 @@ on:
         required: true
         default: "main"
       buildConfig:
-        description: "JSON/YAML (or string) describing build parameters"
+        description: "JSON describing how/what to build"
         required: false
 
 jobs:
@@ -21,18 +20,37 @@ jobs:
         with:
           ref: ${{ github.event.inputs.branch }}
 
-      - name: Parse and log build config
-        if: ${{ inputs.buildConfig != '' }}
+      - name: Parse buildConfig if provided
+        id: parse_config
         run: |
-          echo "Received build config:"
-          echo "${{ github.event.inputs.buildConfig }}" > buildConfig.yaml
-          cat buildConfig.yaml
+          if [ -n "${{ github.event.inputs.buildConfig }}" ]; then
+            echo "${{ github.event.inputs.buildConfig }}" > buildConfig.json
+            echo "Build config contents:"
+            cat buildConfig.json
+          else
+            echo "No buildConfig provided. Using default."
+          fi
 
-      - name: Dynamic build logic
+      - name: Extract Dockerfile path
+        if: ${{ always() }}
+        id: get_dockerfile
         run: |
-          echo "Performing build based on buildConfig.yaml..."
-          # Here you could invoke your ephemeral environment tool
-          # e.g.: ./my-ephemeral-tool --config buildConfig.yaml
+          # If buildConfig.json exists, read the dockerfile field with 'jq'.
+          # Otherwise, set a default path or skip.
+          if [ -f buildConfig.json ]; then
+            DOCKERFILE_PATH=$(jq -r '.dockerfile' buildConfig.json)
+            if [ "$DOCKERFILE_PATH" = "null" ]; then
+              echo "Dockerfile path not found in buildConfig.json. Exiting."
+              exit 1
+            fi
+          else
+            echo "No buildConfig.json found. Exiting or set your default path here."
+            exit 1
+          fi
+          echo "::set-output name=path::$DOCKERFILE_PATH"
 
-      - name: Done
-        run: echo "Meta build job completed!"
+      - name: Build Docker image
+        run: |
+          DOCKERFILE="${{ steps.get_dockerfile.outputs.path }}"
+          echo "Building Docker image from $DOCKERFILE"
+          docker build -t myorg/myapp:latest -f "$DOCKERFILE" .
