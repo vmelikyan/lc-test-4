@@ -3,84 +3,102 @@ name: Meta Build Workflow
 on:
   workflow_dispatch:
     inputs:
-      # 1) Which branch (or tag) in this orchestrator repo's workflow do we use?
-      #    (Handled by --ref in the CLI, not an input here.)
-
-      # 2) Which repo/branch do we actually want to BUILD from?
+      # The repository and branch you want to build from
       targetRepo:
-        description: "OWNER/REPO of the code you want to build"
+        description: "OWNER/REPO that actually contains Dockerfiles"
         required: true
-        default: "my-org/my-app"
+        default: "vmelikyan/lc-test" # Example: actual code repo
       targetBranch:
-        description: "Branch or ref in that repo to build"
+        description: "Branch or ref in that targetRepo"
         required: true
         default: "main"
 
-      # 3) Build configuration: e.g. Dockerfile path, etc.
+      # JSON describing multiple services (name, dockerfile, tag, etc.)
       buildConfig:
-        description: "JSON (or YAML) describing how to build"
-        required: false
+        description: "JSON describing services to build & push"
+        required: true
 
 jobs:
-  meta-build-job:
+  parse-config:
+    name: Parse Build Config
     runs-on: ubuntu-latest
+
+    outputs:
+      services: ${{ steps.parse.outputs.services }}
+
     steps:
-      # Step A: Check out the orchestrator repo (optional, if you need it)
-      - name: Checkout orchestrator repo
+      - name: Checkout orchestrator (lc-test-4) repo (optional)
         uses: actions/checkout@v3
 
-      # Step B: Check out a *different* repo/branch, where your Dockerfile/code actually is
+      - name: Parse buildConfig
+        id: parse
+        run: |
+          echo "${{ github.event.inputs.buildConfig }}" > buildConfig.json
+
+          echo "== buildConfig.json =="
+          cat buildConfig.json
+
+          # Extract .services array into an output for the next job
+          SERVICES_JSON=$(jq -c '.services' buildConfig.json)
+          echo "::set-output name=services::$SERVICES_JSON"
+
+  build-images:
+    name: Build & Push Images
+    needs: parse-config
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        service: ${{ fromJson(needs.parse-config.outputs.services) }}
+
+    steps:
       - name: Check out target repo
         uses: actions/checkout@v3
         with:
           repository: ${{ github.event.inputs.targetRepo }}
           ref: ${{ github.event.inputs.targetBranch }}
           path: target-repo
-          # If the targetRepo is private, provide an appropriate token:
+          # If this targetRepo is private, add:
           # token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
-      # Step C: Parse the buildConfig (if provided)
-      - name: Parse buildConfig
-        id: parse_config
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1 # or your preferred region
+
+      - name: Login to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build & Push Docker Image
         run: |
-          if [ -n "${{ github.event.inputs.buildConfig }}" ]; then
-            echo "${{ github.event.inputs.buildConfig }}" > buildConfig.json
-            echo "=== Build config contents ==="
-            cat buildConfig.json
-            
-            # Extract the Dockerfile path from JSON using jq (assuming a key named 'dockerfile')
-            # If you store multiple fields in buildConfig, adapt accordingly
-            DOCKERFILE_PATH=$(jq -r '.dockerfile' buildConfig.json)
-            
-            if [ "$DOCKERFILE_PATH" = "null" ]; then
-              echo "No 'dockerfile' key found in buildConfig. Exiting..."
-              exit 1
-            fi
-            
-            echo "::set-output name=dockerfilePath::$DOCKERFILE_PATH"
-          else
-            echo "No buildConfig provided. Provide a default path or skip."
-            exit 1
-          fi
+          SERVICE_NAME="${{ matrix.service.name }}"
+          DOCKERFILE_PATH="${{ matrix.service.dockerfile }}"
+          TAG="${{ matrix.service.tag }}"
 
-      # Step D: Build Docker image from that other repo's code + Dockerfile path
-      - name: Build Docker image
-        run: |
-          # We'll reference the Dockerfile from the parse_config step's output
-          DOCKERFILE_PATH="${{ steps.parse_config.outputs.dockerfilePath }}"
+          echo "Building image for $SERVICE_NAME"
+          echo "Using Dockerfile: $DOCKERFILE_PATH"
+          echo "Tagging image as: $TAG"
 
-          echo "Building Docker image using Dockerfile at: $DOCKERFILE_PATH"
-          echo "Repository code is in 'target-repo' folder."
+          # Replace these with your own secrets / region
+          AWS_ACCOUNT_ID="${{ secrets.AWS_ACCOUNT_ID }}"
+          AWS_REGION="us-east-1"
 
-          # We cd into the target-repo directory to build
+          # Construct the full ECR image URI
+          IMAGE_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$SERVICE_NAME:$TAG"
+
+          # Change into the directory where the target repo is checked out
           cd target-repo
 
-          # Example Docker build command:
-          docker build \
-            -t my-org/my-app:latest \
-            -f "$DOCKERFILE_PATH" \
-            .
+          echo "Docker build => $IMAGE_URI"
+          docker build -t "$IMAGE_URI" -f "$DOCKERFILE_PATH" .
+
+          echo "Pushing $IMAGE_URI..."
+          docker push "$IMAGE_URI"
 
       - name: Done
-        run: echo "Meta-build complete!"
+        run: echo "All steps completed for this service."
 
