@@ -3,54 +3,84 @@ name: Meta Build Workflow
 on:
   workflow_dispatch:
     inputs:
-      branch:
-        description: "Git branch or ref to build from"
+      # 1) Which branch (or tag) in this orchestrator repo's workflow do we use?
+      #    (Handled by --ref in the CLI, not an input here.)
+
+      # 2) Which repo/branch do we actually want to BUILD from?
+      targetRepo:
+        description: "OWNER/REPO of the code you want to build"
+        required: true
+        default: "my-org/my-app"
+      targetBranch:
+        description: "Branch or ref in that repo to build"
         required: true
         default: "main"
+
+      # 3) Build configuration: e.g. Dockerfile path, etc.
       buildConfig:
-        description: "JSON describing how/what to build"
+        description: "JSON (or YAML) describing how to build"
         required: false
 
 jobs:
   meta-build-job:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
+      # Step A: Check out the orchestrator repo (optional, if you need it)
+      - name: Checkout orchestrator repo
+        uses: actions/checkout@v3
+
+      # Step B: Check out a *different* repo/branch, where your Dockerfile/code actually is
+      - name: Check out target repo
         uses: actions/checkout@v3
         with:
-          ref: ${{ github.event.inputs.branch }}
+          repository: ${{ github.event.inputs.targetRepo }}
+          ref: ${{ github.event.inputs.targetBranch }}
+          path: target-repo
+          # If the targetRepo is private, provide an appropriate token:
+          # token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
-      - name: Parse buildConfig if provided
+      # Step C: Parse the buildConfig (if provided)
+      - name: Parse buildConfig
         id: parse_config
         run: |
           if [ -n "${{ github.event.inputs.buildConfig }}" ]; then
             echo "${{ github.event.inputs.buildConfig }}" > buildConfig.json
-            echo "Build config contents:"
+            echo "=== Build config contents ==="
             cat buildConfig.json
-          else
-            echo "No buildConfig provided. Using default."
-          fi
-
-      - name: Extract Dockerfile path
-        if: ${{ always() }}
-        id: get_dockerfile
-        run: |
-          # If buildConfig.json exists, read the dockerfile field with 'jq'.
-          # Otherwise, set a default path or skip.
-          if [ -f buildConfig.json ]; then
+            
+            # Extract the Dockerfile path from JSON using jq (assuming a key named 'dockerfile')
+            # If you store multiple fields in buildConfig, adapt accordingly
             DOCKERFILE_PATH=$(jq -r '.dockerfile' buildConfig.json)
+            
             if [ "$DOCKERFILE_PATH" = "null" ]; then
-              echo "Dockerfile path not found in buildConfig.json. Exiting."
+              echo "No 'dockerfile' key found in buildConfig. Exiting..."
               exit 1
             fi
+            
+            echo "::set-output name=dockerfilePath::$DOCKERFILE_PATH"
           else
-            echo "No buildConfig.json found. Exiting or set your default path here."
+            echo "No buildConfig provided. Provide a default path or skip."
             exit 1
           fi
-          echo "::set-output name=path::$DOCKERFILE_PATH"
 
+      # Step D: Build Docker image from that other repo's code + Dockerfile path
       - name: Build Docker image
         run: |
-          DOCKERFILE="${{ steps.get_dockerfile.outputs.path }}"
-          echo "Building Docker image from $DOCKERFILE"
-          docker build -t myorg/myapp:latest -f "$DOCKERFILE" .
+          # We'll reference the Dockerfile from the parse_config step's output
+          DOCKERFILE_PATH="${{ steps.parse_config.outputs.dockerfilePath }}"
+
+          echo "Building Docker image using Dockerfile at: $DOCKERFILE_PATH"
+          echo "Repository code is in 'target-repo' folder."
+
+          # We cd into the target-repo directory to build
+          cd target-repo
+
+          # Example Docker build command:
+          docker build \
+            -t my-org/my-app:latest \
+            -f "$DOCKERFILE_PATH" \
+            .
+
+      - name: Done
+        run: echo "Meta-build complete!"
+
