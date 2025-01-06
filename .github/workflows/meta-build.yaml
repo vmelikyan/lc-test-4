@@ -67,7 +67,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1 # or your preferred region
+          aws-region: us-west-2 # or your preferred region
 
       - name: Login to Amazon ECR
         id: ecr-login
@@ -85,10 +85,10 @@ jobs:
 
           # Replace these with your own secrets / region
           AWS_ACCOUNT_ID="${{ secrets.AWS_ACCOUNT_ID }}"
-          AWS_REGION="us-east-1"
+          AWS_REGION="us-west-2"
 
           # Construct the full ECR image URI
-          IMAGE_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$SERVICE_NAME:$TAG"
+          IMAGE_URI="$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/test-repo:$TAG"
 
           # Change into the directory where the target repo is checked out
           cd target-repo
