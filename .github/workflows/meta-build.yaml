@@ -1,0 +1,38 @@
+name: Meta Build Workflow
+
+on:
+  # This workflow can be triggered manually via the GitHub Actions UI or CLI
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Git branch or ref to build from"
+        required: true
+        default: "main"
+      buildConfig:
+        description: "JSON/YAML (or string) describing build parameters"
+        required: false
+
+jobs:
+  meta-build-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch }}
+
+      - name: Parse and log build config
+        if: ${{ inputs.buildConfig != '' }}
+        run: |
+          echo "Received build config:"
+          echo "${{ github.event.inputs.buildConfig }}" > buildConfig.yaml
+          cat buildConfig.yaml
+
+      - name: Dynamic build logic
+        run: |
+          echo "Performing build based on buildConfig.yaml..."
+          # Here you could invoke your ephemeral environment tool
+          # e.g.: ./my-ephemeral-tool --config buildConfig.yaml
+
+      - name: Done
+        run: echo "Meta build job completed!"
