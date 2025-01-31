@@ -96,7 +96,7 @@ services:
   
   - name: "grpc-echo"
     helm:
-      repository: "vmelikyan/lc-test"
+      repository: "vmelikyan/lc-test-4"
       branchName: "main"
       grpc: true
       chart:
@@ -118,8 +118,7 @@ services:
             
   - name: "postgres-by-helm"
     helm:
-      name: 'postgresql'
-      repository: 'vmelikyan/lc-test'
+      repository: 'vmelikyan/lc-test-4'
       branchName: 'main'
       chart:
         name: 'postgresql'
