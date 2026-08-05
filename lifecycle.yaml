@@ -3,32 +3,32 @@ version: '1.0.0'
 
 environment:
   defaultServices:
-    - name: 'lc-test-4'
+    # - name: 'lc-test-4'
     # - name: 'redis-helm'
-    # - name: 'grpc-echo'
+    - name: 'grpc-echo-4'
     # - name: 'postgres-by-helm'
     # - name: 'lc-helm-test'
     
 services:
-  - name: "lc-test-4"
-    helm:
-      repository: 'vmelikyan/lc-test-4'
-      branchName: 'main'
-      chart:
-        name: 'goodrx-app'
-        valueFiles:
-          - './sysops/helm/common.yaml'
-          - './sysops/helm/lifecycle/service/app.yaml'
-      docker:
-        defaultTag: 'main'
-        app:
-          dockerfilePath: 'sysops/dockerfiles/app.dockerfile'
-          env:
-            CLIENT_HOST: '{{grpc-echo_internalHostname}}:8080'
-            LC_TEST_HOST: '{{lc-test_internalHostname}}:8080'
-            TEST_TEST: 'test'
-          ports:
-            - 8080  
+  # - name: "lc-test-4"
+  #   helm:
+  #     repository: 'vmelikyan/lc-test-4'
+  #     branchName: 'main'
+  #     chart:
+  #       name: 'goodrx-app'
+  #       valueFiles:
+  #         - './sysops/helm/common.yaml'
+  #         - './sysops/helm/lifecycle/service/app.yaml'
+  #     docker:
+  #       defaultTag: 'main'
+  #       app:
+  #         dockerfilePath: 'sysops/dockerfiles/app.dockerfile'
+  #         env:
+  #           CLIENT_HOST: '{{grpc-echo_internalHostname}}:8080'
+  #           LC_TEST_HOST: '{{lc-test_internalHostname}}:8080'
+  #           TEST_TEST: 'test'
+  #         ports:
+  #           - 8080  
 
 
   # - name: 'lc-test'
@@ -94,24 +94,24 @@ services:
   #           host: "lifecycle-grpc.dev.goodrx.com"
   #           defaultHost: "grpc-echo-good-dev-0.lifecycle-grpc.dev.goodrx.com"
   
-  # - name: "grpc-echo"
-  #   helm:
-  #     repository: "vmelikyan/lc-test"
-  #     branchName: "main"
-  #     grpc: true
-  #     chart:
-  #       name: 'goodrx-app'
-  #       valueFiles:
-  #         - 'sysops/helm/common.yaml'
-  #         - 'sysops/helm/lfc/service/grpc-service.yaml'
-  #     docker:
-  #       defaultTag: "main"
-  #       app:
-  #         dockerfilePath: "grpc-echo/Dockerfile"
-  #         ports:
-  #           - 8080
-  #         env:
-  #           COMPONENT: "app"
+  - name: "grpc-echo-4"
+    helm:
+      repository: "vmelikyan/lc-test"
+      branchName: "main"
+      grpc: true
+      chart:
+        name: 'goodrx-app'
+        valueFiles:
+          - 'sysops/helm/common.yaml'
+          - 'sysops/helm/lfc/service/grpc-service.yaml'
+      docker:
+        defaultTag: "main"
+        app:
+          dockerfilePath: "grpc-echo/Dockerfile"
+          ports:
+            - 8080
+          env:
+            COMPONENT: "app"
             
 
             
