@@ -11,22 +11,34 @@ environment:
     
 services:
   - name: "lc-test-4"
-    helm:
-      repository: 'vmelikyan/lc-test-4'
+   helm:
+      version: "3.12.0"
+      repository: 'vmelikyan/lc-test'
       branchName: 'main'
+      args: "--debug"
+      envMapping:
+        app:
+          format: 'array'
+          path: 'deployment.env'
       chart:
-        name: 'goodrx-app'
+        name: './helm/lc-apps' # local (in repo) helm chart
+        values:
+          - 'image="{{{lc-test-helm-local_dockerImage}}}"'
+          - 'ingress.enabled=true'
+          - 'ingress.hostname={{{lc-test_publicUrl}}}'
         valueFiles:
-          - './sysops/helm/common.yaml'
-          - './sysops/helm/lifecycle/service/app.yaml'
+          - 'sysops/helm/common.yaml'
+          - 'sysops/helm/lfc/service/app.yaml'
       docker:
+        builder:
+          engine: 'buildkit'
         defaultTag: 'main'
         app:
           dockerfilePath: 'sysops/dockerfiles/app.dockerfile'
           env:
             CLIENT_HOST: '{{grpc-echo_internalHostname}}:8080'
-            LC_TEST_HOST: '{{lc-test_internalHostname}}:8080'
             TEST_TEST: 'test'
+            WHAT: "is-this"
           ports:
             - 8080  
 
