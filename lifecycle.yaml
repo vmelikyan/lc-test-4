@@ -176,4 +176,22 @@ services:
         valueFiles: [e2e/values/unsafe.yaml]
 
   - name: e2e-symlink
-  
+    helm:
+      repository: vmelikyan/lc-test-4
+      branchName: platform-maintenance-e2e
+      type: local
+      deploymentMethod: native
+      docker:
+        builder:
+          engine: buildkit
+          cache:
+            mode: 'off'
+        defaultTag: platform-maintenance-e2e
+        app:
+          dockerfilePath: e2e/http/Dockerfile
+          ports: [8080]
+      args: '--wait --wait-for-jobs --timeout 90s'
+      chart:
+        name: ./e2e/chart-link
+        valueFiles: [e2e/values/job.yaml]
+
