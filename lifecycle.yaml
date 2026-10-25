@@ -8,6 +8,7 @@ environment:
   optionalServices:
     - name: e2e-job-fail
     - name: e2e-unsafe
+    - name: e2e-symlink
   webhooks:
     - name: e2e-command-complete
       state: deployed
@@ -173,3 +174,6 @@ services:
       chart:
         name: ./e2e/chart
         valueFiles: [e2e/values/unsafe.yaml]
+
+  - name: e2e-symlink
+  
