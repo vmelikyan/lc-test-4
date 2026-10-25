@@ -82,6 +82,7 @@ services:
       installCommand: |
         set -eu
         mkdir -p .lifecycle-e2e/setup
+        rm -f .lifecycle-e2e/setup/success
         printf 'attempt\n' >> .lifecycle-e2e/setup/runs
         count=$(wc -l < .lifecycle-e2e/setup/runs)
         printf 'E2E_SETUP_STARTED run=%s\n' "$count"
@@ -97,7 +98,17 @@ services:
     helm:
       repository: vmelikyan/lc-test-4
       branchName: platform-maintenance-e2e
+      type: local
       deploymentMethod: native
+      docker:
+        builder:
+          engine: buildkit
+          cache:
+            mode: 'off'
+        defaultTag: platform-maintenance-e2e
+        app:
+          dockerfilePath: e2e/http/Dockerfile
+          ports: [8080]
       args: '--wait --wait-for-jobs --timeout 90s'
       chart:
         name: ./e2e/chart
@@ -107,7 +118,17 @@ services:
     helm:
       repository: vmelikyan/lc-test-4
       branchName: platform-maintenance-e2e
+      type: local
       deploymentMethod: native
+      docker:
+        builder:
+          engine: buildkit
+          cache:
+            mode: 'off'
+        defaultTag: platform-maintenance-e2e
+        app:
+          dockerfilePath: e2e/http/Dockerfile
+          ports: [8080]
       args: '--wait --timeout 90s'
       chart:
         name: ./e2e/chart
@@ -117,7 +138,17 @@ services:
     helm:
       repository: vmelikyan/lc-test-4
       branchName: platform-maintenance-e2e
+      type: local
       deploymentMethod: native
+      docker:
+        builder:
+          engine: buildkit
+          cache:
+            mode: 'off'
+        defaultTag: platform-maintenance-e2e
+        app:
+          dockerfilePath: e2e/http/Dockerfile
+          ports: [8080]
       args: '--wait --wait-for-jobs --timeout 90s'
       chart:
         name: ./e2e/chart
@@ -127,7 +158,17 @@ services:
     helm:
       repository: vmelikyan/lc-test-4
       branchName: platform-maintenance-e2e
+      type: local
       deploymentMethod: native
+      docker:
+        builder:
+          engine: buildkit
+          cache:
+            mode: 'off'
+        defaultTag: platform-maintenance-e2e
+        app:
+          dockerfilePath: e2e/http/Dockerfile
+          ports: [8080]
       args: '--wait --timeout 90s'
       chart:
         name: ./e2e/chart
