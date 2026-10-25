@@ -1,0 +1,5 @@
+apiVersion: v2
+name: lifecycle-release-check
+version: 0.1.0
+description: Bounded Job and CronJob fixtures for Lifecycle release checks.
+type: application

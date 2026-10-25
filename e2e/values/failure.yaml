@@ -1,0 +1,6 @@
+serviceName: e2e-job-fail
+job:
+  enabled: true
+  fail: true
+cron:
+  enabled: false

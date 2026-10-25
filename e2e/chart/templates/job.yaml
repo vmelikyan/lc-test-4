@@ -1,0 +1,41 @@
+{{- if .Values.job.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ printf "%s-check" .Release.Name | trunc 63 | trimSuffix "-" }}
+  labels:
+    {{- include "e2e.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 30
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        {{- include "e2e.labels" . | nindent 8 }}
+    spec:
+      {{- include "e2e.podSecurity" . | nindent 6 }}
+      containers:
+        - name: check
+          image: {{ .Values.image | quote }}
+          command: [/bin/sh, -c]
+          args:
+            - |
+              set -eu
+              printf 'E2E_JOB_STARTED\n'
+              sleep 1
+              {{- if .Values.job.fail }}
+              printf 'E2E_JOB_EXPECTED_FAILURE\n'
+              exit 23
+              {{- else }}
+              printf 'E2E_JOB_OK\n'
+              {{- end }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests: {cpu: 5m, memory: 8Mi}
+            limits: {cpu: 100m, memory: 16Mi}
+{{- end }}

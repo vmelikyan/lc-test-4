@@ -1,36 +1,134 @@
----
 version: '1.0.0'
 
 environment:
   defaultServices:
-    - name: 'lc-test-4'
+    - name: lc-test-4
+    - name: e2e-job
+    - name: e2e-cron
+  optionalServices:
+    - name: e2e-job-fail
+    - name: e2e-unsafe
+  webhooks:
+    - name: e2e-command-complete
+      state: deployed
+      type: command
+      env:
+        E2E_MARKER: E2E_COMMAND_WEBHOOK_OK
+      command:
+        image: alpine:3.22.2@sha256:4b7ce07002c69e8f3d704a9c5d6fd3053be500b7f1c69fc0d80990c2ad8dd412
+        timeout: 60
+        script: |
+          set -eu
+          printf '%s\n' "$E2E_MARKER"
+          sleep 1
+          printf 'E2E_COMMAND_WEBHOOK_DONE\n'
+    - name: e2e-docker-complete
+      state: deployed
+      type: docker
+      env:
+        E2E_MARKER: E2E_DOCKER_WEBHOOK_OK
+      docker:
+        image: alpine:3.22.2@sha256:4b7ce07002c69e8f3d704a9c5d6fd3053be500b7f1c69fc0d80990c2ad8dd412
+        timeout: 60
+        command: [/bin/sh, -c]
+        args:
+          - 'set -eu; printf "%s\n" "$E2E_MARKER"; sleep 1; printf "E2E_DOCKER_WEBHOOK_DONE\n"'
+    - name: e2e-command-failure
+      state: error
+      type: command
+      env:
+        E2E_MARKER: E2E_ERROR_WEBHOOK_OK
+      command:
+        image: alpine:3.22.2@sha256:4b7ce07002c69e8f3d704a9c5d6fd3053be500b7f1c69fc0d80990c2ad8dd412
+        timeout: 60
+        script: 'set -eu; printf "%s\n" "$E2E_MARKER"'
 
 services:
-  - name: "lc-test-4"
+  - name: lc-test-4
     github:
-      repository: 'vmelikyan/lc-test-4'
-      branchName: 'main'
+      repository: vmelikyan/lc-test-4
+      branchName: platform-maintenance-e2e
       docker:
         builder:
-          engine: 'buildkit'
-        defaultTag: 'main'
+          engine: buildkit
+          cache:
+            mode: 'off'
+        defaultTag: platform-maintenance-e2e
         app:
-          dockerfilePath: 'sysops/dockerfiles/app.dockerfile'
-          env:
-            CLIENT_HOST: 'grpc-echo:8080'
-            TEST_TEST: 'test'
-          ports:
-            - 8080
+          dockerfilePath: e2e/http/Dockerfile
+          ports: [8080]
       deployment:
         public: true
         resource:
           cpu:
-            request: '10m'
+            request: 10m
+            limit: 100m
           memory:
-            request: '50Mi'
+            request: 16Mi
+            limit: 32Mi
         readiness:
-          tcpSocketPort: 8080
-        hostnames:
-          host: '0env.com'
-          defaultInternalHostname: 'lc-test-4-dev-0'
-          defaultPublicUrl: 'lc-test-4-dev-0.0env.com'
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 1
+          periodSeconds: 2
+          timeoutSeconds: 1
+          failureThreshold: 10
+    dev:
+      image: busybox:1.37.0-musl@sha256:5cec3fc171c87218698e85a52af7087de727372aae264a787b8112901a5b0092
+      workDir: /workspace/repos/vmelikyan/lc-test-4
+      command: 'busybox httpd -f -v -p 8080 -h e2e/http/public'
+      ports: [8080]
+      installCommand: |
+        set -eu
+        mkdir -p .lifecycle-e2e/setup
+        printf 'attempt\n' >> .lifecycle-e2e/setup/runs
+        count=$(wc -l < .lifecycle-e2e/setup/runs)
+        printf 'E2E_SETUP_STARTED run=%s\n' "$count"
+        if [ -f .lifecycle-e2e/setup/pause ]; then sleep 20; else sleep 1; fi
+        if [ -f .lifecycle-e2e/setup/fail ]; then
+          printf 'E2E_SETUP_EXPECTED_FAILURE run=%s\n' "$count"
+          exit 23
+        fi
+        printf 'E2E_SETUP_APPROVED_SUFFIX run=%s\n' "$count" > .lifecycle-e2e/setup/success
+        printf 'E2E_SETUP_APPROVED_SUFFIX run=%s\n' "$count"
+
+  - name: e2e-job
+    helm:
+      repository: vmelikyan/lc-test-4
+      branchName: platform-maintenance-e2e
+      deploymentMethod: native
+      args: '--wait --wait-for-jobs --timeout 90s'
+      chart:
+        name: ./e2e/chart
+        valueFiles: [e2e/values/job.yaml]
+
+  - name: e2e-cron
+    helm:
+      repository: vmelikyan/lc-test-4
+      branchName: platform-maintenance-e2e
+      deploymentMethod: native
+      args: '--wait --timeout 90s'
+      chart:
+        name: ./e2e/chart
+        valueFiles: [e2e/values/cron.yaml]
+
+  - name: e2e-job-fail
+    helm:
+      repository: vmelikyan/lc-test-4
+      branchName: platform-maintenance-e2e
+      deploymentMethod: native
+      args: '--wait --wait-for-jobs --timeout 90s'
+      chart:
+        name: ./e2e/chart
+        valueFiles: [e2e/values/failure.yaml]
+
+  - name: e2e-unsafe
+    helm:
+      repository: vmelikyan/lc-test-4
+      branchName: platform-maintenance-e2e
+      deploymentMethod: native
+      args: '--wait --timeout 90s'
+      chart:
+        name: ./e2e/chart
+        valueFiles: [e2e/values/unsafe.yaml]

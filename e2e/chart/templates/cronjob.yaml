@@ -1,0 +1,42 @@
+{{- if .Values.cron.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ printf "%s-tick" .Release.Name | trunc 52 | trimSuffix "-" }}
+  labels:
+    {{- include "e2e.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.cron.schedule | quote }}
+  suspend: {{ .Values.cron.suspend }}
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 30
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    metadata:
+      labels:
+        {{- include "e2e.labels" . | nindent 8 }}
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 30
+      ttlSecondsAfterFinished: 3600
+      template:
+        metadata:
+          labels:
+            {{- include "e2e.labels" . | nindent 12 }}
+        spec:
+          {{- include "e2e.podSecurity" . | nindent 10 }}
+          containers:
+            - name: tick
+              image: {{ .Values.image | quote }}
+              command: [/bin/sh, -c]
+              args: ["set -eu; printf 'E2E_CRON_OK\\n'"]
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: [ALL]
+              resources:
+                requests: {cpu: 5m, memory: 8Mi}
+                limits: {cpu: 100m, memory: 16Mi}
+{{- end }}

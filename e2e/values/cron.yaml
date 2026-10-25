@@ -1,0 +1,5 @@
+serviceName: e2e-cron
+job:
+  enabled: false
+cron:
+  enabled: true

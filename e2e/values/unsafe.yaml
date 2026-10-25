@@ -1,0 +1,7 @@
+serviceName: e2e-unsafe
+job:
+  enabled: false
+cron:
+  enabled: false
+unsafe:
+  clusterRole: true
