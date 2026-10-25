@@ -50,13 +50,13 @@ services:
   - name: lc-test-4
     github:
       repository: vmelikyan/lc-test-4
-      branchName: platform-maintenance-e2e
+      branchName: security-release-e2e
       docker:
         builder:
           engine: buildkit
           cache:
             mode: 'off'
-        defaultTag: platform-maintenance-e2e
+        defaultTag: security-release-e2e
         app:
           dockerfilePath: e2e/http/Dockerfile
           ports: [8080]
@@ -100,13 +100,13 @@ services:
   - name: e2e-attach
     github:
       repository: vmelikyan/lc-test-4
-      branchName: platform-maintenance-e2e
+      branchName: security-release-e2e
       docker:
         builder:
           engine: buildkit
           cache:
             mode: 'off'
-        defaultTag: platform-maintenance-e2e
+        defaultTag: security-release-e2e
         app:
           dockerfilePath: e2e/http/Dockerfile
           ports: [8080]
@@ -138,13 +138,13 @@ services:
   - name: e2e-agent-sandbox
     github:
       repository: vmelikyan/lc-test-4
-      branchName: platform-maintenance-e2e
+      branchName: security-release-e2e
       docker:
         builder:
           engine: buildkit
           cache:
             mode: 'off'
-        defaultTag: platform-maintenance-e2e
+        defaultTag: security-release-e2e
         app:
           dockerfilePath: e2e/agent-sandbox/Dockerfile
           ports: [8080]
@@ -180,7 +180,7 @@ services:
   - name: e2e-job
     helm:
       repository: vmelikyan/lc-test-4
-      branchName: platform-maintenance-e2e
+      branchName: security-release-e2e
       type: local
       deploymentMethod: native
       docker:
@@ -188,7 +188,7 @@ services:
           engine: buildkit
           cache:
             mode: 'off'
-        defaultTag: platform-maintenance-e2e
+        defaultTag: security-release-e2e
         app:
           dockerfilePath: e2e/http/Dockerfile
           ports: [8080]
@@ -200,7 +200,7 @@ services:
   - name: e2e-cron
     helm:
       repository: vmelikyan/lc-test-4
-      branchName: platform-maintenance-e2e
+      branchName: security-release-e2e
       type: local
       deploymentMethod: native
       docker:
@@ -208,7 +208,7 @@ services:
           engine: buildkit
           cache:
             mode: 'off'
-        defaultTag: platform-maintenance-e2e
+        defaultTag: security-release-e2e
         app:
           dockerfilePath: e2e/http/Dockerfile
           ports: [8080]
@@ -220,7 +220,7 @@ services:
   - name: e2e-job-fail
     helm:
       repository: vmelikyan/lc-test-4
-      branchName: platform-maintenance-e2e
+      branchName: security-release-e2e
       type: local
       deploymentMethod: native
       docker:
@@ -228,7 +228,7 @@ services:
           engine: buildkit
           cache:
             mode: 'off'
-        defaultTag: platform-maintenance-e2e
+        defaultTag: security-release-e2e
         app:
           dockerfilePath: e2e/http/Dockerfile
           ports: [8080]
@@ -240,7 +240,7 @@ services:
   - name: e2e-unsafe
     helm:
       repository: vmelikyan/lc-test-4
-      branchName: platform-maintenance-e2e
+      branchName: security-release-e2e
       type: local
       deploymentMethod: native
       docker:
@@ -248,7 +248,7 @@ services:
           engine: buildkit
           cache:
             mode: 'off'
-        defaultTag: platform-maintenance-e2e
+        defaultTag: security-release-e2e
         app:
           dockerfilePath: e2e/http/Dockerfile
           ports: [8080]
@@ -260,7 +260,7 @@ services:
   - name: e2e-symlink
     helm:
       repository: vmelikyan/lc-test-4
-      branchName: platform-maintenance-e2e
+      branchName: security-release-e2e
       type: local
       deploymentMethod: native
       docker:
@@ -268,7 +268,7 @@ services:
           engine: buildkit
           cache:
             mode: 'off'
-        defaultTag: platform-maintenance-e2e
+        defaultTag: security-release-e2e
         app:
           dockerfilePath: e2e/http/Dockerfile
           ports: [8080]

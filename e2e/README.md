@@ -4,6 +4,12 @@ These fixtures exercise environment deployment, service development, agent setup
 
 Use a dedicated test environment. Record the fixture commit and the API, UI, CLI, and chart revisions for each run. A passing local run does not certify a production installation.
 
+## Main-based security release
+
+Use branch `security-release-e2e` with the main-based security candidate. Cross-repository fixtures use that same branch. The Job and CronJob pods use the namespace's default service account with token mounting disabled. They require no maintenance-specific service account or RBAC.
+
+Keep `e2e-unsafe` and `e2e-symlink` disabled for this candidate. Their rejection assertions below belong to the broader maintenance branch and are not provided by the smaller release. Likewise, this candidate can execute configured `dev.installCommand` during workspace creation or attachment without a setup approval. Use only these known fixture commands in disposable environments. An `APPROVED` marker is a historical string, not evidence that an approval occurred. Keep the two branch profiles and their results separate.
+
 ## Fixture services
 
 The root [`lifecycle.yaml`](../lifecycle.yaml) defines the service selection and expected behavior.
@@ -16,8 +22,8 @@ The root [`lifecycle.yaml`](../lifecycle.yaml) defines the service selection and
 | `e2e-attach` | Optional HTTP service without a setup command. Use it to check service connection and workspace exclusivity. |
 | `e2e-agent-sandbox` | Optional sandbox fixture. `/` contains `E2E_SANDBOX_BASELINE`. `/health` contains `E2E_SANDBOX_HEALTHY`. |
 | `e2e-job-fail` | Negative fixture. The Job prints `E2E_JOB_EXPECTED_FAILURE`, exits with code 23, and fails deployment. |
-| `e2e-unsafe` | Negative fixture. The chart requests a ClusterRole. The deployment must reject it without creating that resource. |
-| `e2e-symlink` | Negative fixture. The selected chart path is a symbolic link. The deployment must reject that chart input. |
+| `e2e-unsafe` | Maintenance-only negative fixture. The chart requests a ClusterRole; that release must reject it without creating the resource. Keep disabled on the main-based candidate. |
+| `e2e-symlink` | Maintenance-only negative fixture. That release must reject the selected symbolic-link chart path. Keep disabled on the main-based candidate. |
 
 Do not select negative fixtures for a successful deployment test. Rejection of a selected chart link does not imply rejection of unrelated repository links.
 
@@ -26,6 +32,8 @@ A successful deployment also runs command and Docker completion webhooks. Check 
 The observer below does not read logs or webhook history. Capture only these known markers through an approved log interface. Keep raw logs and credentials out of evidence.
 
 ## Setup and approval
+
+The steps in this section apply to a release that implements setup approval. For the main-based candidate, record direct setup execution and verify the resulting file/count and service readiness without claiming an approval gate.
 
 1. Confirm that the selected workspace backend supports environment sessions and service development.
 2. Deploy the fixture and capture the baseline before opening an agent session.

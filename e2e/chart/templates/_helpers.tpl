@@ -10,7 +10,6 @@ lc-service: {{ .Values.serviceName | quote }}
 
 {{- define "e2e.podSecurity" -}}
 automountServiceAccountToken: false
-serviceAccountName: lifecycle-workload
 restartPolicy: Never
 terminationGracePeriodSeconds: 5
 securityContext:
