@@ -77,7 +77,7 @@ services:
           failureThreshold: 10
     dev:
       image: busybox:1.37.0-musl@sha256:5cec3fc171c87218698e85a52af7087de727372aae264a787b8112901a5b0092
-      workDir: /workspace/repos/vmelikyan/lc-test-4
+      workDir: /workspace
       command: 'busybox httpd -f -v -p 8080 -h e2e/http/public'
       ports: [8080]
       installCommand: |
