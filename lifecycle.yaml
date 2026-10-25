@@ -7,6 +7,7 @@ environment:
     - name: e2e-cron
   optionalServices:
     - name: e2e-attach
+    - name: e2e-agent-sandbox
     - name: e2e-job-fail
     - name: e2e-unsafe
     - name: e2e-symlink
@@ -133,6 +134,48 @@ services:
       ports: [8080]
       env:
         E2E_ATTACH_MARKER: E2E_ORDINARY_ATTACH_OK
+
+  - name: e2e-agent-sandbox
+    github:
+      repository: vmelikyan/lc-test-4
+      branchName: platform-maintenance-e2e
+      docker:
+        builder:
+          engine: buildkit
+          cache:
+            mode: 'off'
+        defaultTag: platform-maintenance-e2e
+        app:
+          dockerfilePath: e2e/agent-sandbox/Dockerfile
+          ports: [8080]
+      deployment:
+        public: true
+        resource:
+          cpu:
+            request: 10m
+            limit: 100m
+          memory:
+            request: 16Mi
+            limit: 32Mi
+        readiness:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 1
+          periodSeconds: 2
+          timeoutSeconds: 1
+          failureThreshold: 10
+    dev:
+      image: busybox:1.37.0-musl@sha256:5cec3fc171c87218698e85a52af7087de727372aae264a787b8112901a5b0092
+      workDir: /workspace
+      command: 'busybox httpd -f -v -p 8080 -h e2e/agent-sandbox/public'
+      ports: [8080]
+      env:
+        E2E_SANDBOX_PROFILE: E2E_SANDBOX_CONFIGURED
+      installCommand: |
+        set -eu
+        mkdir -p .lifecycle-e2e/agent-sandbox
+        printf 'E2E_SANDBOX_SETUP_OK\n' > .lifecycle-e2e/agent-sandbox/setup
 
   - name: e2e-job
     helm:
